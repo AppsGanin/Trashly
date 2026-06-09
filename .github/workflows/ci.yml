@@ -1,0 +1,49 @@
+name: CI
+
+# Type-check and compile on every push / PR so releases are only ever cut from
+# green code.
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-latest
+    # Skip release-please's auto-generated PR — it only bumps versions + the
+    # changelog, so there's nothing to type-check or compile.
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check frontend
+        run: npx tsc --noEmit
+
+      - name: Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: Rust lint (clippy)
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Compile backend
+        run: cargo check --manifest-path src-tauri/Cargo.toml

@@ -1,0 +1,33 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="trashlyBg" gradientUnits="userSpaceOnUse" x1="512" y1="0" x2="512" y2="1024">
+      <stop offset="0" stop-color="#5b93ff"/>
+      <stop offset="1" stop-color="#2c68e0"/>
+    </linearGradient>
+    <clipPath id="trashlySquircle">
+      <rect width="1024" height="1024" rx="224"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" rx="224" fill="url(#trashlyBg)"/>
+  <g clip-path="url(#trashlySquircle)">
+    <ellipse cx="512" cy="-51" rx="461" ry="512" fill="#ffffff" opacity="0.11"/>
+  </g>
+
+  <!-- trash can -->
+  <g fill="#ffffff">
+    <path d="M343 410 L681 410 L650 722 A36 36 0 0 1 614 758 L410 758 A36 36 0 0 1 374 722 Z"/>
+    <rect x="302" y="363.5" width="420" height="53" rx="26.5"/>
+    <rect x="455.7" y="332.8" width="112.6" height="51.9" rx="18"/>
+    <!-- sparkles -->
+    <path d="M670.7 250.9 L685.5 297.5 L732.1 312.3 L685.5 327.1 L670.7 373.7 L655.9 327.1 L609.3 312.3 L655.9 297.5 Z"/>
+    <path opacity="0.85" d="M752.6 209.9 L760.0 233.2 L783.3 240.6 L760.0 248.0 L752.6 271.3 L745.2 248.0 L721.9 240.6 L745.2 233.2 Z"/>
+  </g>
+
+  <!-- slots punched through the body (same gradient as background) -->
+  <g fill="url(#trashlyBg)">
+    <rect x="419.9" y="456" width="36.8" height="246" rx="18.4"/>
+    <rect x="493.6" y="456" width="36.8" height="246" rx="18.4"/>
+    <rect x="567.3" y="456" width="36.8" height="246" rx="18.4"/>
+  </g>
+</svg>
