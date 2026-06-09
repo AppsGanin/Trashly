@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import logo from "../assets/logo.svg";
 
-const GITHUB_URL = "https://github.com/AppsGanin/trashly";
+const GITHUB_URL = "https://github.com/AppsGanin/Trashly";
 
 export default function AboutModal({
   open,

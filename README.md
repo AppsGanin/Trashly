@@ -14,7 +14,7 @@ A free & open-source macOS toolkit that finds the junk other cleaners miss, remo
 [![Built with Tauri](https://img.shields.io/badge/Tauri-2-ffc131?style=flat-square&logo=tauri&logoColor=black)](https://tauri.app)
 [![Rust](https://img.shields.io/badge/Rust-000?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react)](https://react.dev)
-![Stars](https://img.shields.io/github/stars/AppsGanin/trashly?style=flat-square&color=ffb454)
+![Stars](https://img.shields.io/github/stars/AppsGanin/Trashly?style=flat-square&color=ffb454)
 
 [**Download**](#install) · [**Features**](#features) · [**Screenshots**](#screenshots) · [**Build**](#build-from-source) · [**Safety**](#-safety-first)
 
@@ -109,7 +109,7 @@ A cleaner you can't trust is worse than no cleaner. Trashly is built defensively
 > **macOS 10.15 (Catalina) or later — Apple Silicon & Intel.**
 > Runs on every Mac: MacBook / MacBook Air / Pro, iMac, Mac mini, Mac Studio, Mac Pro.
 
-**Download** the latest `.dmg` from the [Releases page](https://github.com/AppsGanin/trashly/releases), drag Trashly to Applications, and launch.
+**Download** the latest `.dmg` from the [Releases page](https://github.com/AppsGanin/Trashly/releases), drag Trashly to Applications, and launch.
 
 The app isn't notarized yet, so on first launch right-click → **Open** (or *System Settings → Privacy & Security → Open Anyway*).
 
@@ -121,7 +121,7 @@ The app isn't notarized yet, so on first launch right-click → **Open** (or *Sy
 Requires [Rust](https://rustup.rs) and [Node.js](https://nodejs.org).
 
 ```bash
-git clone https://github.com/AppsGanin/trashly.git
+git clone https://github.com/AppsGanin/Trashly.git
 cd trashly
 npm install
 npm run tauri dev      # run in development
@@ -176,7 +176,7 @@ Heavy commands run via `spawn_blocking` so the UI never janks. Per-process CPU, 
 
 ## Roadmap
 
-Have an idea? [Open an issue](https://github.com/AppsGanin/trashly/issues).
+Have an idea? [Open an issue](https://github.com/AppsGanin/Trashly/issues).
 
 
 ## Contributing
