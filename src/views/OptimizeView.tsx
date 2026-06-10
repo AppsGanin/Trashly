@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { ShieldAlert } from "lucide-react";
 import {
   listOptimizations,
   runOptimization,
   type OptimizationInfo,
 } from "../lib/api";
 import { useToast } from "../lib/toast";
+import Modal from "./Modal";
 
 export default function OptimizeView() {
   const [tasks, setTasks] = useState<OptimizationInfo[]>([]);
   const [running, setRunning] = useState<string | null>(null);
+  const [pending, setPending] = useState<OptimizationInfo | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -16,11 +19,10 @@ export default function OptimizeView() {
   }, []);
 
   async function run(task: OptimizationInfo) {
+    setPending(null);
     setRunning(task.id);
     try {
       const res = await runOptimization(task.id);
-      // The full command output (e.g. brew's warnings) is noisy, so the toast
-      // stays concise: just the outcome, with the error detail on failure.
       if (res.success) toast.ok(`${task.label} — done`);
       else toast.err(`${task.label} failed: ${res.output.slice(0, 200)}`);
     } catch {
@@ -52,7 +54,7 @@ export default function OptimizeView() {
               </div>
               <button
                 className="btn ghost"
-                onClick={() => run(t)}
+                onClick={() => setPending(t)}
                 disabled={running !== null}
               >
                 {running === t.id ? "Running…" : "Run"}
@@ -61,6 +63,29 @@ export default function OptimizeView() {
           </div>
         ))}
       </div>
+
+      <Modal open={!!pending} onClose={() => setPending(null)}>
+        <h2 className="modal-title">Run “{pending?.label}”?</h2>
+        <p className="modal-msg">{pending?.description}</p>
+        {pending?.needs_admin && (
+          <p className="modal-warn">
+            <ShieldAlert size={16} />
+            Needs administrator rights — macOS will ask for your password. This
+            affects the whole system.
+          </p>
+        )}
+        <div className="modal-footer end">
+          <button className="btn ghost" onClick={() => setPending(null)}>
+            Cancel
+          </button>
+          <button
+            className={`btn primary ${pending?.needs_admin ? "danger" : ""}`}
+            onClick={() => pending && run(pending)}
+          >
+            Run
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

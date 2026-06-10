@@ -140,6 +140,102 @@ const UNINSTALL_HOME_DIRS: &[&str] = &[
     ".kube",
 ];
 
+// Critical $HOME subtrees that the user-file tools (Duplicate Finder) must never
+// touch — secrets and the whole Library (handled by Clean/Uninstall only).
+const USER_PROTECTED_PREFIXES: &[&str] = &[
+    "Library",
+    ".ssh",
+    ".gnupg",
+    ".aws",
+    ".config/gcloud",
+    ".kube",
+    ".docker",
+];
+
+/// macOS bundle / library package extensions. Their *internals* must never be
+/// touched by the user-file tools — deleting files inside a `.photoslibrary`,
+/// `.app`, `.fcpbundle`… corrupts the library or app.
+pub const PACKAGE_EXTS: &[&str] = &[
+    "app",
+    "bundle",
+    "framework",
+    "plugin",
+    "kext",
+    "prefpane",
+    "qlgenerator",
+    "mdimporter",
+    "rtfd",
+    "photoslibrary",
+    "photolibrary",
+    "aplibrary",
+    "migrationlibrary",
+    "musiclibrary",
+    "tvlibrary",
+    "imovielibrary",
+    "theater",
+    "fcpbundle",
+    "pbproj",
+    "xcodeproj",
+    "wdgt",
+];
+
+/// True when any component of `target` is a macOS package/library bundle (so the
+/// path is *inside* — or is — a `.app`, `.photoslibrary`, `.fcpbundle`, …).
+pub fn is_in_package(target: &Path) -> bool {
+    target.components().any(|c| {
+        Path::new(c.as_os_str())
+            .extension()
+            .and_then(|e| e.to_str())
+            .map(|e| PACKAGE_EXTS.contains(&e.to_ascii_lowercase().as_str()))
+            .unwrap_or(false)
+    })
+}
+
+// Standard top-level $HOME folders that must not be deleted *wholesale* (only
+// their contents). Guards against a misclick wiping all of ~/Downloads.
+const HOME_TOP_DIRS: &[&str] = &[
+    "Documents",
+    "Downloads",
+    "Desktop",
+    "Pictures",
+    "Movies",
+    "Music",
+    "Public",
+    "Applications",
+    "Developer",
+    "Projects",
+    "Sites",
+];
+
+/// Validation for the user-file tools (Duplicate Finder): any file or folder
+/// strictly inside $HOME, except secrets, the Library tree, and the bare standard
+/// folders themselves. The user picks these explicitly in the UI, so we trust the
+/// selection but still fence off the dangerous roots.
+pub fn is_user_path(target: &Path) -> bool {
+    if !target.is_absolute() || target.components().any(|c| c.as_os_str() == "..") {
+        return false;
+    }
+    let h = home();
+    if !target.starts_with(&h) || target == h {
+        return false;
+    }
+    // Never reach inside a macOS package / media library (Photos, apps, FCP…).
+    if is_in_package(target) {
+        return false;
+    }
+    for p in USER_PROTECTED_PREFIXES {
+        if target.starts_with(h.join(p)) {
+            return false;
+        }
+    }
+    for d in HOME_TOP_DIRS {
+        if target == h.join(d) {
+            return false;
+        }
+    }
+    target.exists()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -206,5 +302,25 @@ mod tests {
         assert!(!is_project_artifact(&h)); // $HOME itself
         assert!(!is_project_artifact(Path::new("/tmp/node_modules"))); // outside $HOME
         assert!(!is_project_artifact(&h.join("dev/../.ssh/node_modules"))); // `..` escape
+    }
+
+    #[test]
+    fn user_path_scope() {
+        let h = home();
+        // Rejected regardless of existence: roots, secrets, Library, escapes.
+        assert!(!is_user_path(&h));
+        assert!(!is_user_path(&h.join("Downloads"))); // bare top-level folder
+        assert!(!is_user_path(&h.join(".ssh/id_rsa")));
+        assert!(!is_user_path(&h.join("Library/Caches/x")));
+        assert!(!is_user_path(&h.join("Downloads/../.ssh"))); // `..` escape
+        assert!(!is_user_path(Path::new("/etc/hosts"))); // outside $HOME
+                                                         // Never inside a macOS package / media library.
+        assert!(!is_user_path(
+            &h.join("Pictures/Photos Library.photoslibrary/originals/x.jpg")
+        ));
+        assert!(!is_user_path(
+            &h.join("Downloads/Some.app/Contents/MacOS/bin")
+        ));
+        assert!(is_in_package(&h.join("Movies/My.fcpbundle/CurrentVersion")));
     }
 }

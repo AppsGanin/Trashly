@@ -191,6 +191,104 @@ export const setTraySettings = (settings: TraySettings) =>
   invoke<void>("set_tray_settings", { settings });
 export const trayHasBattery = () => invoke<boolean>("tray_has_battery");
 
+// ---- Duplicates ----
+export interface DupeFile {
+  path: string;
+  name: string;
+  modified: number;
+}
+export interface DupeGroup {
+  hash: string;
+  size: number;
+  count: number;
+  wasted: number;
+  files: DupeFile[];
+}
+export interface DupeResult {
+  groups: DupeGroup[];
+  total_wasted: number;
+  scanned: number;
+  unreadable: string[];
+  skipped_icloud: number;
+}
+export interface RootInfo {
+  key: string;
+  label: string;
+  path: string;
+}
+export const dupeRoots = () => invoke<RootInfo[]>("dupe_roots");
+export const scanDuplicates = (roots: string[], min_size: number) =>
+  invoke<DupeResult>("scan_duplicates", { req: { roots, min_size } });
+
+// ---- Similar photos (perceptual hash) ----
+export interface PhotoFile {
+  path: string;
+  name: string;
+  size: number;
+  modified: number;
+  thumb: string;
+}
+export interface PhotoGroup {
+  count: number;
+  wasted: number;
+  files: PhotoFile[];
+}
+export interface PhotoResult {
+  groups: PhotoGroup[];
+  total_wasted: number;
+  scanned: number;
+  truncated: boolean;
+  unreadable: string[];
+  skipped_icloud: number;
+}
+export const scanSimilarPhotos = (
+  roots: string[],
+  min_size: number,
+  threshold: number,
+) => invoke<PhotoResult>("scan_similar_photos", { req: { roots, min_size, threshold } });
+
+// Progress event payload emitted during a scan (listen on "scan-progress").
+export interface ScanProgress {
+  phase: "walk" | "hash";
+  done: number;
+  total: number;
+}
+export const cancelScan = () => invoke<void>("cancel_scan");
+
+// ---- Shared user-file removal (Duplicates) ----
+export interface RemoveResult {
+  removed: number;
+  freed: number;
+  failed: string[];
+  needs_full_disk_access: boolean;
+}
+export const removeFiles = (paths: string[], to_trash: boolean) =>
+  invoke<RemoveResult>("remove_files", { paths, toTrash: to_trash });
+
+// ---- Protected folders (whitelist) ----
+export const getProtectedPaths = () => invoke<string[]>("get_protected_paths");
+export const setProtectedPaths = (paths: string[]) =>
+  invoke<void>("set_protected_paths", { paths });
+
+// ---- Cleanup log ----
+export interface CleanupEntry {
+  time: number;
+  source: string;
+  path: string;
+  size: number;
+  to_trash: boolean;
+}
+export const getCleanupLog = (limit: number) =>
+  invoke<CleanupEntry[]>("get_cleanup_log", { limit });
+export const clearCleanupLog = () => invoke<void>("clear_cleanup_log");
+
+// ---- Finder helpers ----
+export const revealInFinder = (path: string) =>
+  invoke<void>("reveal_in_finder", { path });
+export const quickLook = (path: string) => invoke<void>("quick_look", { path });
+export const isAppRunning = (app_path: string) =>
+  invoke<boolean>("is_app_running", { appPath: app_path });
+
 // ---- helpers ----
 export function formatBytes(n: number): string {
   if (n <= 0) return "0 B";

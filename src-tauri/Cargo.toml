@@ -16,6 +16,9 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 tauri-plugin-prevent-default = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -27,6 +30,8 @@ dirs = "5"
 glob = "0.3"
 base64 = "0.22"
 regex = "1"
+blake3 = "1"
+image = "0.25"
 
 [profile.release]
 opt-level = "s"

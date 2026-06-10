@@ -1,15 +1,23 @@
 name: CI
 
-# Type-check and compile on every push / PR so releases are only ever cut from
-# green code.
+# Lint, type-check, test and compile on every PR *and* on pushes to main, so
+# direct commits to main are verified too — releases are only cut from green code.
 on:
   pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch/PR cancels the older, still-running check.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
     runs-on: macos-latest
     # Skip release-please's auto-generated PR — it only bumps versions + the
-    # changelog, so there's nothing to type-check or compile.
+    # changelog, so there's nothing to type-check or compile. (head_ref is empty
+    # on push events, so this never skips a real push to main.)
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     steps:
       - uses: actions/checkout@v4

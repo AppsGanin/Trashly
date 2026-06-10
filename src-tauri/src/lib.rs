@@ -1,10 +1,17 @@
 mod clean;
+mod cleanlog;
+mod dupes;
+mod finder;
 mod fsutil;
 mod optimize;
+mod photos;
+mod protect;
 mod safety;
+mod scanctl;
 mod status;
 mod tray;
 mod uninstall;
+mod userfiles;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,8 +24,13 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(prevent_default)
         .setup(|app| {
+            protect::load(app.handle());
+            cleanlog::init(app.handle());
             tray::setup(app)?;
             Ok(())
         })
@@ -41,11 +53,23 @@ pub fn run() {
             uninstall::app_leftovers,
             uninstall::app_icon,
             uninstall::uninstall,
+            uninstall::is_app_running,
+            finder::reveal_in_finder,
+            finder::quick_look,
             optimize::list_optimizations,
             optimize::run_optimization,
             tray::get_tray_settings,
             tray::set_tray_settings,
             tray::tray_has_battery,
+            dupes::dupe_roots,
+            dupes::scan_duplicates,
+            photos::scan_similar_photos,
+            scanctl::cancel_scan,
+            userfiles::remove_files,
+            protect::get_protected_paths,
+            protect::set_protected_paths,
+            cleanlog::get_cleanup_log,
+            cleanlog::clear_cleanup_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

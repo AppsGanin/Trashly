@@ -8,10 +8,11 @@ import {
   formatBytes,
   errMsg,
   openFullDiskAccess,
+  isAppRunning,
   type AppInfo,
   type Leftover,
 } from "../lib/api";
-import { Package } from "lucide-react";
+import { AlertTriangle, Package } from "lucide-react";
 import { toggleInSet } from "../lib/util";
 import { useToast } from "../lib/toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -32,6 +33,7 @@ export default function UninstallView() {
   // Whether to remove the app bundle itself (vs. keeping it and only cleaning
   // leftovers). Forced off for non-removable system apps.
   const [removeBundle, setRemoveBundle] = useState(true);
+  const [appRunning, setAppRunning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const toast = useToast();
@@ -67,7 +69,13 @@ export default function UninstallView() {
     setRemoveBundle(true); // default to removing the bundle for a fresh app
     setIcon(null);
     setLeftovers([]);
+    setAppRunning(false);
     setLoadingLeft(true);
+    isAppRunning(app.path)
+      .then((r) => {
+        if (token === reqId.current) setAppRunning(r);
+      })
+      .catch(() => {});
     // Icon and leftovers load independently; both guarded by the token.
     appIcon(app.path)
       .then((dataUrl) => {
@@ -200,6 +208,15 @@ export default function UninstallView() {
                   </p>
                 </div>
               </div>
+              {appRunning && (
+                <p className="uninstall-warn">
+                  <AlertTriangle size={15} />
+                  <span>
+                    <strong>{active.name}</strong> is running — quit it first, or
+                    you may leave it in a broken state.
+                  </span>
+                </p>
+              )}
               <p className="muted small uninstall-hint">
                 {!removable ? (
                   <>

@@ -34,6 +34,9 @@ Most cleaners either nag you for money, ship a giant Electron bundle, or quietly
 
 ## Features
 
+### 🟦 Dashboard — one-tap Smart Scan
+A landing screen with a single **Smart Scan** button that fans out across the cleaners at once — caches & junk, the Trash, and duplicate files — then shows the total reclaimable space as result cards. Click a card to jump straight into that module and review.
+
 ### 🧹 Clean — reclaim disk space
 Progressive scanning renders instantly, then streams sizes in so a 3 GB cache never freezes the UI.
 
@@ -53,6 +56,15 @@ Drag an app to the Bin and you leave gigabytes behind. Trashly hunts them all do
 - Knows the **heavy hitters**: Xcode DerivedData/DeviceSupport, Android SDK & emulators, JetBrains caches, Docker/OrbStack data, browser profiles.
 - **Keep the app, clean its data** — untick the bundle to wipe only the leftovers.
 - Handles **system apps** (Safari): can't delete the bundle, but clears its data.
+- **Warns if the app is running** so you can quit it before uninstalling.
+
+### 📑 Duplicate Finder — by content, not by name
+Two modes over your Downloads, Documents, Desktop, Pictures, Movies & Music:
+
+- **Exact duplicates** — files are grouped by size, then confirmed with a full **BLAKE3 content hash**, so identical files are caught even when renamed. Keeps the oldest copy by default.
+- **Similar photos & screenshots** — a **perceptual (dHash) hash** clusters look-alike images (resized, re-compressed, edited screenshots, **incl. HEIC** iPhone photos), shown as a thumbnail grid. Keeps the largest (best-quality) copy.
+- **Inspect before deleting** — Reveal in Finder or Quick Look any item straight from the list.
+- Runs in parallel with **live progress and a Cancel button**; user data is **fenced to your home folders** (never Library or secrets) and removed to the **Trash** by default.
 
 ### ⚡️ Optimize — one-shot maintenance
 Native admin prompt for privileged tasks; tools that aren't installed are hidden automatically.
@@ -68,7 +80,9 @@ CPU + per-core + load · memory / swap / pressure · disks · real-time network 
 A tray icon with **live CPU / RAM / Disk / Battery** in the menu bar, a dropdown with the same stats, and quick Show / Quit. Closing the window keeps Trashly running in the menu bar.
 
 ### ⚙️ Settings
-Choose exactly which metrics appear in the **menu-bar title** and the **tray dropdown** — pick none and it's just the icon. Saved across launches.
+- **Menu-bar metrics** — choose exactly which appear in the **title** and the **tray dropdown** (pick none → just the icon).
+- **Protected folders** — pick folders Trashly must *never* touch; enforced across every cleaner, on top of the built-in guards.
+- **Cleanup history** — a running log of what was removed (path · size · Trash/permanent), so you can review and restore.
 
 ## Screenshots
 
@@ -98,11 +112,15 @@ Choose exactly which metrics appear in the **menu-bar title** and the **tray dro
 
 A cleaner you can't trust is worse than no cleaner. Trashly is built defensively:
 
-- **Allow-list guard** — every path is re-validated in Rust before deletion (`safety.rs`). A forged path from the UI can never escape the allow-listed roots.
-- **Trash by default** — items move to the real macOS Trash via `NSFileManager` (restorable with “Put Back”). Permanent deletion is always an explicit, separate choice.
-- **No silent failures** — anything that can't be removed is reported, never hidden.
+- **Allow-list guard** — every path is re-validated in Rust before deletion (`safety.rs`). A forged path from the UI can never escape the allow-listed roots, and `..` escapes are rejected.
+- **Trash by default** — items move to the real macOS Trash via `NSFileManager` (restorable with “Put Back”). Permanent deletion is a separate, **two-step** confirmation.
+- **Never inside packages** — the user-file tools skip `.photoslibrary`, `.app`, `.fcpbundle`, `.musiclibrary`… so your Photos library and apps can't be damaged.
+- **Protected folders** — user-defined folders that no engine will ever touch (Settings).
+- **Smart dedup** — duplicates always keep ≥1 copy; hardlinks are collapsed; iCloud-offloaded files are skipped (no surprise downloads or cloud deletions).
+- **Privileged tasks confirm first** — Optimize actions show what they'll do and route admin tasks through the native macOS password prompt.
+- **No silent failures** — anything that can't be removed is reported (with the reason, e.g. *needs Full Disk Access*), never hidden.
 - **Shared/risky data is opt-in** — SDKs, emulators and browser profiles are flagged **verify** and left unchecked.
-- **No telemetry.** Ever.
+- **Audit log + no telemetry.** Every removal is logged locally for you; nothing ever leaves your Mac.
 
 ## Install
 
@@ -112,6 +130,8 @@ A cleaner you can't trust is worse than no cleaner. Trashly is built defensively
 **Download** the latest `.dmg` from the [Releases page](https://github.com/AppsGanin/Trashly/releases), drag Trashly to Applications, and launch.
 
 The app isn't notarized yet, so on first launch right-click → **Open** (or *System Settings → Privacy & Security → Open Anyway*).
+
+> 🔄 **Auto-update** — Trashly checks GitHub releases on launch and (from the **About** dialog) installs **signature-verified** updates in a click.
 
 > 💡 For full results, grant Trashly **Full Disk Access** (System Settings → Privacy & Security) so it can see protected caches and the Trash.
 
@@ -142,15 +162,18 @@ A Rust core does the heavy lifting (scanning, sizing, safe file ops) off the UI 
 
 ```
 src-tauri/src/
-  safety.rs     path allow-list guard (is_deletable / is_uninstall_target)
+  safety.rs     path allow-list guard (is_deletable / is_uninstall_target / is_user_path)
   fsutil.rs     shared dir_size / trash / delete helpers
   clean.rs      scan() + size_paths() + clean()   — data-driven category table
   uninstall.rs  list_apps() + app_leftovers() + app_icon() + uninstall()
+  dupes.rs      scan_duplicates()                 — size buckets → BLAKE3 content hash
+  photos.rs     scan_similar_photos()             — perceptual dHash + clustering
+  userfiles.rs  remove_files()                    — safe removal of user-picked files
   optimize.rs   list_optimizations() + run_optimization()
   status.rs     status() + system_info()          — ps / top / netstat / ioreg
 src/
   lib/          typed API wrappers, toast system, helpers
-  views/        Clean · Uninstall · Optimize · Status · modals
+  views/        Dashboard · Clean · Uninstall · Duplicates · Optimize · Status · modals
 ```
 
 **Stack:** [Tauri 2](https://tauri.app) · Rust · [React 19](https://react.dev) · TypeScript · [Vite](https://vitejs.dev) · [lucide](https://lucide.dev) icons.
@@ -168,6 +191,9 @@ Heavy commands run via `spawn_blocking` so the UI never janks. Per-process CPU, 
 | App uninstall + leftovers | ✅ | ✅ | ✅ |
 | Dev-tool heavy data (Xcode/Android/JetBrains) | ✅ | 🟡 | ❌ |
 | Project build-artifact cleanup (`node_modules`/`target`/`dist`) | ✅ | ❌ | ❌ |
+| One-tap Smart Scan | ✅ | ✅ | ❌ |
+| Duplicate finder (content hash) | ✅ | 🟡 | ❌ |
+| Similar-photo / screenshot detection | ✅ | 🟡 | ❌ |
 | Live system monitor | ✅ | ✅ | ❌ |
 | Menu-bar widget with configurable live stats | ✅ | 🟡 | ❌ |
 
@@ -192,9 +218,16 @@ Fully automated via [release-please](https://github.com/googleapis/release-pleas
 1. Merge conventional-commit PRs into `main`.
 2. release-please keeps a **Release PR** open with the next version bump (`package.json`, `Cargo.toml`, `tauri.conf.json`) and the updated `CHANGELOG.md`.
 3. **Merge the Release PR** → it tags the commit and creates the GitHub Release.
-4. The CI then builds the **universal `.dmg`** and attaches it to that release automatically.
+4. The CI then builds the **universal `.dmg`**, signs the **auto-update** artifacts, and attaches them (plus `latest.json`) to that release automatically.
 
 No manual version edits — the commit types decide the bump (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` → major).
+
+**Updater signing** — the in-app updater verifies a minisign signature, so CI needs two repository secrets:
+
+- `TAURI_SIGNING_PRIVATE_KEY` — the private key generated with `npm run tauri signer generate`.
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — its password (empty if you generated the key without one).
+
+The matching **public** key lives in `tauri.conf.json` (`plugins.updater.pubkey`) and the update feed is `releases/latest/download/latest.json`.
 
 
 ## License

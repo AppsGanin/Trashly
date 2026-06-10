@@ -47,7 +47,7 @@ const TASKS: &[Task] = &[
     Task {
         id: "system_caches",
         label: "Clear system caches & logs",
-        description: "Removes /Library/Caches and /Library/Logs (system-wide; needs admin).",
+        description: "Removes /Library/Caches and /Library/Logs (system-wide).",
         needs_admin: true,
         cmd: "find /Library/Caches /Library/Logs -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null; echo cleared",
     },

@@ -351,7 +351,8 @@ fn clean_impl(req: CleanRequest) -> CleanResult {
     for raw in req.paths {
         let path = PathBuf::from(&raw);
         let allowed = (safety::is_deletable(&path) || safety::is_project_artifact(&path))
-            && !is_protected(&path);
+            && !is_protected(&path)
+            && !crate::protect::is_protected(&path);
         if !allowed {
             failed.push(FailedItem {
                 path: raw,
@@ -373,6 +374,7 @@ fn clean_impl(req: CleanRequest) -> CleanResult {
             Ok(_) => {
                 removed += 1;
                 freed += size;
+                crate::cleanlog::record("clean", &raw, size, to_trash);
             }
             Err(error) => failed.push(FailedItem { path: raw, error }),
         }

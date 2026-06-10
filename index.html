@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trashly</title>
+    <!-- Paint the dark background immediately to avoid a white flash before
+         the app's CSS/React mount. -->
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        height: 100%;
+        background: #16171b;
+      }
+    </style>
   </head>
 
   <body>

@@ -86,8 +86,22 @@ fn list_apps_impl() -> Vec<AppInfo> {
         })
         .collect();
 
+    // Don't offer to uninstall ourselves.
+    apps.retain(|a| a.bundle_id != "com.ganin.trashly" && a.name != "Trashly");
     apps.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     apps
+}
+
+/// Whether an app currently has a running process — uninstalling a live app can
+/// leave it in a weird state, so the UI warns first.
+#[tauri::command]
+pub fn is_app_running(app_path: String) -> bool {
+    let needle = format!("{app_path}/Contents/MacOS/");
+    std::process::Command::new("/usr/bin/pgrep")
+        .args(["-f", &needle])
+        .output()
+        .map(|o| o.status.success() && !o.stdout.is_empty())
+        .unwrap_or(false)
 }
 
 #[derive(Serialize)]
@@ -503,7 +517,7 @@ fn uninstall_impl(req: UninstallRequest) -> UninstallResult {
     let mut failed = Vec::new();
 
     for path in targets {
-        if !safety::is_uninstall_target(&path) {
+        if !safety::is_uninstall_target(&path) || crate::protect::is_protected(&path) {
             failed.push(format!("{}: blocked by safety guard", path.display()));
             continue;
         }
@@ -515,6 +529,7 @@ fn uninstall_impl(req: UninstallRequest) -> UninstallResult {
             Ok(_) => {
                 removed += 1;
                 freed += size;
+                crate::cleanlog::record("uninstall", &path.to_string_lossy(), size, req.to_trash);
             }
             Err(e) => failed.push(format!("{}: {e}", path.display())),
         }

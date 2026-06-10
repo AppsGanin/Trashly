@@ -109,15 +109,15 @@ for b, bw in zip(BADGES, widths):
     bx += bw + bgap
 
 # ── 3D fan ──────────────────────────────────────────────────────────────────
-status = card("status.png", 0.56, 0)
+center = card("dashboard.png", 0.56, 0)
 clean = card("clean.png", 0.52, -1)
 uninstall = card("uninstall.png", 0.52, 1)
 
-cx = (W - status.width) // 2
+cx = (W - center.width) // 2
 placements = [
     (clean, cx + 150 - clean.width, 690),
-    (uninstall, cx + status.width - 150, 690),
-    (status, cx, 615),  # centre, on top
+    (uninstall, cx + center.width - 150, 690),
+    (center, cx, 615),  # Dashboard, centre, on top
 ]
 
 
