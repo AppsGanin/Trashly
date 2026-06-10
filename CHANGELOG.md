@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/AppsGanin/Trashly/compare/v0.2.0...v0.3.0) (2026-06-10)
+
+
+### Features
+
+* **fda:** add Full Disk Access detection and nudge ([1ea5e08](https://github.com/AppsGanin/Trashly/commit/1ea5e08b4af607f00dfbfd4739b85943573724f0))
+
 ## [0.2.0](https://github.com/AppsGanin/Trashly/compare/v0.1.0...v0.2.0) (2026-06-10)
 
 
