@@ -194,7 +194,7 @@ fn status_impl() -> StatusSnapshot {
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     top_cpu.truncate(6);
-    procs.sort_by(|a, b| b.memory.cmp(&a.memory));
+    procs.sort_by_key(|p| std::cmp::Reverse(p.memory));
     procs.truncate(6);
 
     // ---- battery ----
@@ -494,7 +494,7 @@ fn network_rates() -> (Vec<NetIface>, u64, u64) {
     state.prev = next_prev;
 
     nets.retain(|n| !n.ip.is_empty() || n.rx_bps + n.tx_bps > 0);
-    nets.sort_by(|a, b| (b.rx_bps + b.tx_bps).cmp(&(a.rx_bps + a.tx_bps)));
+    nets.sort_by_key(|n| std::cmp::Reverse(n.rx_bps + n.tx_bps));
     nets.truncate(3);
     (nets, total_rx, total_tx)
 }

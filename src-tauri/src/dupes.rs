@@ -238,7 +238,7 @@ fn scan_impl(app: &AppHandle, req: DupeRequest) -> DupeResult {
         });
     }
 
-    groups.sort_by(|a, b| b.wasted.cmp(&a.wasted));
+    groups.sort_by_key(|g| std::cmp::Reverse(g.wasted));
     let total_wasted = groups.iter().map(|g| g.wasted).sum();
     DupeResult {
         groups,

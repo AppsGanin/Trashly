@@ -88,7 +88,7 @@ fn list_apps_impl() -> Vec<AppInfo> {
 
     // Don't offer to uninstall ourselves.
     apps.retain(|a| a.bundle_id != "com.ganin.trashly" && a.name != "Trashly");
-    apps.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    apps.sort_by_key(|a| a.name.to_lowercase());
     apps
 }
 
@@ -470,7 +470,7 @@ fn app_leftovers_impl(bundle_id: String, name: String) -> Vec<Leftover> {
             from_name,
         });
     }
-    result.sort_by(|a, b| b.size.cmp(&a.size));
+    result.sort_by_key(|x| std::cmp::Reverse(x.size));
     result
 }
 

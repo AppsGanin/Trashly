@@ -207,7 +207,7 @@ fn scan_impl(app: &AppHandle, req: PhotoRequest) -> PhotoResult {
         .filter(|idxs| idxs.len() > 1)
         .map(|idxs| {
             let mut files: Vec<PhotoFile> = idxs.iter().map(|&i| imgs[i].file.clone()).collect();
-            files.sort_by(|a, b| b.size.cmp(&a.size)); // largest (best) first
+            files.sort_by_key(|f| std::cmp::Reverse(f.size)); // largest (best) first
             let total: u64 = files.iter().map(|f| f.size).sum();
             let keep = files.first().map(|f| f.size).unwrap_or(0);
             PhotoGroup {
@@ -218,7 +218,7 @@ fn scan_impl(app: &AppHandle, req: PhotoRequest) -> PhotoResult {
         })
         .collect();
 
-    groups.sort_by(|a, b| b.wasted.cmp(&a.wasted));
+    groups.sort_by_key(|g| std::cmp::Reverse(g.wasted));
     let total_wasted = groups.iter().map(|g| g.wasted).sum();
     PhotoResult {
         groups,

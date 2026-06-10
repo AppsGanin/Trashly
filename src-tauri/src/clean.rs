@@ -521,7 +521,7 @@ fn scan_projects_impl() -> CategoryResult {
         })
         .filter(|e| e.size > 0)
         .collect();
-    entries.sort_by(|a, b| b.size.cmp(&a.size));
+    entries.sort_by_key(|e| std::cmp::Reverse(e.size));
     let total_size = entries.iter().map(|e| e.size).sum();
 
     CategoryResult {
