@@ -56,6 +56,7 @@ pub fn run() {
             uninstall::is_app_running,
             finder::reveal_in_finder,
             finder::quick_look,
+            finder::has_full_disk_access,
             optimize::list_optimizations,
             optimize::run_optimization,
             tray::get_tray_settings,

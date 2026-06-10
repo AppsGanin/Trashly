@@ -7,6 +7,10 @@ export const openFullDiskAccess = () =>
     "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles",
   );
 
+/** Whether Trashly already has Full Disk Access (no per-folder prompts). */
+export const hasFullDiskAccess = () =>
+  invoke<boolean>("has_full_disk_access");
+
 // ---- Clean ----
 export interface ScanEntry {
   id: string;

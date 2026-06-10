@@ -18,6 +18,7 @@ import {
 import { toggleInSet } from "../lib/util";
 import { useToast } from "../lib/toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import FdaBanner from "./FdaBanner";
 
 type Mode = "files" | "photos";
 
@@ -251,6 +252,8 @@ export default function DuplicatesView() {
         )}
       </header>
 
+      <FdaBanner note="Grant Full Disk Access so scanning your folders doesn't trigger repeated permission prompts." />
+
       <div className="dupe-controls">
         <div className="seg">
           <button
@@ -291,7 +294,7 @@ export default function DuplicatesView() {
         {!groups && !loading && (
           <div className="empty">
             {mode === "photos" ? <Images size={26} className="empty-ico" /> : <Copy size={26} className="empty-ico" />}
-            Pick folders and hit <b>Scan</b>.
+            Pick folders and hit <b>Scan</b>
           </div>
         )}
         {groups && list.length === 0 && !loading && (

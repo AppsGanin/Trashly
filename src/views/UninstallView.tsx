@@ -16,6 +16,7 @@ import { AlertTriangle, Package } from "lucide-react";
 import { toggleInSet } from "../lib/util";
 import { useToast } from "../lib/toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import FdaBanner from "./FdaBanner";
 
 export default function UninstallView() {
   const [apps, setApps] = useState<AppInfo[]>([]);
@@ -169,6 +170,8 @@ export default function UninstallView() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </header>
+
+      <FdaBanner note="Grant Full Disk Access so Trashly can find every app leftover in protected folders." />
 
       <div className="split">
         <div className="app-list">

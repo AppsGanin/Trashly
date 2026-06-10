@@ -1483,3 +1483,23 @@ label.detail-row,
 .update-btn {
   transition: none;
 }
+
+/* Full Disk Access nudge */
+.fda-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 2px 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--accent) 13%, var(--bg-2));
+  color: var(--text);
+}
+.fda-banner svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.fda-banner span {
+  flex: 1;
+}

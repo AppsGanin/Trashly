@@ -18,3 +18,12 @@ pub fn quick_look(path: String) {
         .stderr(Stdio::null())
         .spawn();
 }
+
+/// Whether Trashly has Full Disk Access — probed by reading the user's TCC
+/// database, which only opens with FDA. When granted, scanning Desktop /
+/// Documents / Downloads no longer triggers per-folder permission prompts.
+#[tauri::command]
+pub fn has_full_disk_access() -> bool {
+    let tcc = crate::safety::home().join("Library/Application Support/com.apple.TCC/TCC.db");
+    std::fs::File::open(tcc).is_ok()
+}

@@ -6,11 +6,14 @@ import {
   sizePaths,
   scanDuplicates,
   cancelScan,
+  hasFullDiskAccess,
+  openFullDiskAccess,
   formatBytes,
   errMsg,
   type ScanProgress,
 } from "../lib/api";
 import { useToast } from "../lib/toast";
+import Modal from "./Modal";
 
 type Finding = {
   junk: number; // caches, logs, dev caches…
@@ -28,8 +31,17 @@ export default function DashboardView({
   const [scanning, setScanning] = useState(false);
   const [found, setFound] = useState<Finding | null>(null);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
+  const [fdaAsk, setFdaAsk] = useState(false);
   const cancelled = useRef(false);
   const toast = useToast();
+
+  // Smart Scan touches the Trash and protected folders — offer to grant Full
+  // Disk Access first (for complete results) unless we already have it.
+  function startScan() {
+    hasFullDiskAccess()
+      .then((ok) => (ok ? smartScan() : setFdaAsk(true)))
+      .catch(() => smartScan());
+  }
 
   useEffect(() => {
     const un = listen<ScanProgress>("scan-progress", (e) => setProgress(e.payload));
@@ -121,7 +133,7 @@ export default function DashboardView({
               <X size={16} /> Cancel
             </button>
           ) : (
-            <button className="btn primary lg" onClick={smartScan}>
+            <button className="btn primary lg" onClick={startScan}>
               <Sparkles size={16} /> Smart Scan
             </button>
           )}
@@ -155,6 +167,34 @@ export default function DashboardView({
           </div>
         </div>
       )}
+
+      <Modal open={fdaAsk} onClose={() => setFdaAsk(false)}>
+        <h2 className="modal-title">Grant Full Disk Access?</h2>
+        <p className="modal-msg">
+          A complete scan needs Full Disk Access (Trash &amp; protected folders).
+          Grant it, or continue with a partial scan.
+        </p>
+        <div className="modal-footer end">
+          <button
+            className="btn ghost"
+            onClick={() => {
+              setFdaAsk(false);
+              smartScan();
+            }}
+          >
+            Continue anyway
+          </button>
+          <button
+            className="btn primary"
+            onClick={() => {
+              openFullDiskAccess();
+              setFdaAsk(false);
+            }}
+          >
+            Open Settings
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

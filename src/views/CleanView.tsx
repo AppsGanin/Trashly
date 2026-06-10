@@ -13,6 +13,7 @@ import { RotateCw } from "lucide-react";
 import { toggleInSet } from "../lib/util";
 import { useToast } from "../lib/toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import FdaBanner from "./FdaBanner";
 
 export default function CleanView() {
   const [cats, setCats] = useState<CategoryResult[]>([]);
@@ -210,6 +211,8 @@ export default function CleanView() {
           )}
         </button>
       </header>
+
+      <FdaBanner note="Grant Full Disk Access for complete results — the Trash and other apps data may be hidden." />
 
       <div className="cat-list">
         {cats.map((c) => {
