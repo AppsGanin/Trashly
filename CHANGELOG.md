@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/AppsGanin/Trashly/compare/v0.3.0...v0.3.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **macos:** keep Full Disk Access across updates ([844a4c5](https://github.com/AppsGanin/Trashly/commit/844a4c5e2bd3239a0282a6b6a9d9993f856b0521))
+
 ## [0.3.0](https://github.com/AppsGanin/Trashly/compare/v0.2.0...v0.3.0) (2026-06-10)
 
 
