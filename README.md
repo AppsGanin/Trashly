@@ -133,7 +133,8 @@ The app isn't notarized yet, so on first launch right-click → **Open** (or *Sy
 
 > 🔄 **Auto-update** — Trashly checks GitHub releases on launch and (from the **About** dialog) installs **signature-verified** updates in a click.
 
-> 💡 For full results, grant Trashly **Full Disk Access** (System Settings → Privacy & Security) so it can see protected caches and the Trash.
+> 💡 For full results, grant Trashly **Full Disk Access** (System Settings → Privacy & Security) so it can see protected caches and the Trash, then quit and reopen Trashly.
+> Releases are signed with Trashly's own certificate, so the grant survives updates. Coming from **0.3.0 or older** (unsigned)? Remove Trashly from the Full Disk Access list (−) and add it again once.
 
 
 ## Build from source
@@ -228,6 +229,13 @@ No manual version edits — the commit types decide the bump (`fix:` → patch, 
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — its password (empty if you generated the key without one).
 
 The matching **public** key lives in `tauri.conf.json` (`plugins.updater.pubkey`) and the update feed is `releases/latest/download/latest.json`.
+
+**App signing** — macOS ties Full Disk Access to the app's code signature. An ad-hoc signature changes with every build, so the grant would be lost on each update; instead CI signs the `.app` with a free **self-signed certificate** that stays the same across releases. Create it once with `scripts/make-signing-cert.sh` (keep the `.p12` backed up — a new certificate makes every user re-grant access) and add two repository secrets:
+
+- `MACOS_SIGNING_CERT` — the base64-encoded `.p12`.
+- `MACOS_SIGNING_CERT_PASSWORD` — its password.
+
+Without them CI falls back to ad-hoc signing (`signingIdentity: "-"` in `tauri.conf.json`, also used for local builds). This isn't Apple notarization — Gatekeeper still asks for *Open Anyway* on first launch.
 
 
 ## License

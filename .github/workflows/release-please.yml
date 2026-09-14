@@ -52,6 +52,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Sign with the project's self-signed certificate (scripts/make-signing-cert.sh)
+      # so Full Disk Access survives updates: macOS then ties the grant to this
+      # certificate instead of each build's hash. Imported by hand because
+      # Tauri's APPLE_CERTIFICATE import only accepts Apple-issued certificates.
+      - name: Import code-signing certificate
+        env:
+          SIGNING_CERT: ${{ secrets.MACOS_SIGNING_CERT }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.MACOS_SIGNING_CERT_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_CERT" ]; then
+            echo "::warning::MACOS_SIGNING_CERT is not set — building ad-hoc signed; Full Disk Access won't survive updates."
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 16)"
+          echo "$SIGNING_CERT" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -t 3600 -u "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$SIGNING_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/cert.p12"
+          echo "APPLE_SIGNING_IDENTITY=Trashly Self-Signed" >> "$GITHUB_ENV"
+
       - name: Build universal app & upload to the release
         uses: tauri-apps/tauri-action@v0
         env:
