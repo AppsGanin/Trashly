@@ -1,6 +1,6 @@
 [package]
 name = "trashly"
-version = "0.3.0"
+version = "0.3.1"
 description = "Trashly — a Mac cleaner"
 authors = ["ganin"]
 edition = "2021"
